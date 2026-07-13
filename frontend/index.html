@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Liria's Arcade</title>
+<link rel="icon" type="image/x-icon" href="/assets/Liria-Arcade-Icon.ico" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="scanlines" aria-hidden="true"></div>
+
+<audio id="bgm" src="/music/alice.mp3" loop preload="auto"></audio>
+
+<section id="select-screen" class="screen active">
+  <div class="select-overlay">
+    <button id="choose-game-btn" class="choose-btn">CHOOSE GAME</button>
+  </div>
+</section>
+
+<section id="grid-screen" class="screen">
+  <header class="grid-header">
+    <h1>SELECT YOUR GAME</h1>
+    <p class="grid-hint">Arrow keys / D-pad to move &middot; Enter / A to open/launch &middot; Esc / B to go back</p>
+  </header>
+  <div id="game-grid" class="category-list"></div>
+  <p id="grid-empty" class="grid-empty" hidden>No games found yet. Drop ROMs into <code>/roms/&lt;system&gt;</code> or HTML5 games into <code>/arcade-collection</code>.</p>
+</section>
+
+<div id="player-overlay" class="player-overlay" hidden>
+  <button id="player-close" class="player-close">&times; CLOSE</button>
+  <iframe id="player-frame" class="player-frame" title="Game"></iframe>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<button id="exit-btn" class="exit-btn" title="Stop the arcade server">EXIT</button>
+
+<script src="app.js"></script>
+</body>
+</html>

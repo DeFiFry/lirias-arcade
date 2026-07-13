@@ -1,0 +1,13 @@
+{
+  "_comment": "EDIT THIS FILE to match your local RetroArch install before launching ROM games.",
+  "retroarchPath": "E:/RetroArch/retroarch.exe",
+  "coresDir": "E:/RetroArch/cores",
+  "systems": {
+    "fbneo": { "label": "FinalBurn Neo", "core": "fbneo_libretro", "players": 4 },
+    "mame": { "label": "MAME", "core": "mame2003_plus_libretro", "players": 4 },
+    "snes": { "label": "Super Nintendo", "core": "snes9x_libretro", "players": 2 },
+    "genesis": { "label": "Sega Genesis", "core": "genesis_plus_gx_libretro", "players": 2 },
+    "n64": { "label": "Nintendo 64", "core": "mupen64plus_next_libretro", "players": 4 },
+    "psx": { "label": "PlayStation", "core": "pcsx_rearmed_libretro", "players": 2 }
+  }
+}

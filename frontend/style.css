@@ -1,0 +1,340 @@
+:root {
+  --bg-primary: #0A0824;
+  --bg-secondary: #1C1A3F;
+  --border-cyan: #00F0FF;
+  --title-yellow: #FFEA00;
+  --body-white: #FFFFFF;
+  --selected-magenta: #FF1AC6;
+  --btn-fill: #FF1E3D;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-primary);
+  color: var(--body-white);
+  font-family: 'Segoe UI', 'Consolas', monospace;
+  overflow: hidden;
+}
+
+.scanlines {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 240, 255, 0.06) 0px,
+    rgba(0, 240, 255, 0.06) 1px,
+    transparent 2px,
+    transparent 4px
+  );
+  mix-blend-mode: screen;
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: none;
+}
+.screen.active { display: block; }
+
+/* ---------- Select screen ---------- */
+#select-screen.active { display: flex; }
+
+#select-screen {
+  background-image: url('assets/Liria-Arcade-Banner.jpg');
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.select-overlay {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 12%;
+}
+
+@keyframes choose-btn-pulse {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(255, 30, 61, 0.6);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 30, 61, 1), 0 0 16px rgba(255, 234, 0, 0.7);
+    opacity: 0.82;
+  }
+}
+
+.choose-btn {
+  font-family: inherit;
+  font-size: clamp(20px, 3vw, 36px);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding: 0.9em 2.2em;
+  background: var(--btn-fill);
+  color: var(--title-yellow);
+  border: 3px solid var(--title-yellow);
+  border-radius: 8px;
+  cursor: pointer;
+  text-shadow: 0 0 8px rgba(0,0,0,0.5);
+  box-shadow: 0 0 12px rgba(255, 30, 61, 0.6);
+  transition: transform 0.15s ease;
+  animation: choose-btn-pulse 0.8s ease-in-out infinite;
+}
+
+.choose-btn:hover {
+  outline: none;
+  animation-play-state: paused;
+  box-shadow: 0 0 10px var(--border-cyan), 0 0 30px var(--border-cyan), 0 0 12px rgba(255, 30, 61, 0.6);
+  opacity: 1;
+  transform: scale(1.04);
+}
+
+/* Keyboard focus gets a visible indicator but must never pause the pulse. */
+.choose-btn:focus-visible {
+  outline: 2px solid var(--border-cyan);
+  outline-offset: 4px;
+}
+
+/* ---------- Grid screen ---------- */
+#grid-screen {
+  background-image: linear-gradient(rgba(10, 8, 36, 0.88), rgba(10, 8, 36, 0.88)), url('assets/Liria-Arcade-Banner.jpg');
+  background-size: 100% 100%, 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 32px 40px;
+  overflow-y: auto;
+}
+
+.grid-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.grid-header h1 {
+  color: var(--title-yellow);
+  font-size: clamp(24px, 3.5vw, 42px);
+  letter-spacing: 0.15em;
+  margin: 0 0 8px;
+  text-shadow: 0 0 10px rgba(255, 234, 0, 0.4);
+}
+
+.grid-hint {
+  color: var(--border-cyan);
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ---------- Category folders ---------- */
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-cyan);
+  border-radius: 6px;
+  padding: 14px 20px;
+  cursor: pointer;
+  color: var(--title-yellow);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.05em;
+  transition: box-shadow 0.12s ease, transform 0.12s ease, border-color 0.12s ease;
+  outline: none;
+}
+
+.category-arrow {
+  display: inline-block;
+  width: 1em;
+  color: var(--border-cyan);
+  font-size: 14px;
+}
+
+.category-count {
+  margin-left: auto;
+  color: var(--body-white);
+  opacity: 0.6;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+}
+
+.category-header.selected {
+  border-color: var(--selected-magenta);
+  box-shadow: 0 0 8px var(--selected-magenta), 0 0 24px var(--selected-magenta);
+  transform: translateY(-2px);
+}
+
+.category.expanded .category-header {
+  border-color: var(--border-cyan);
+  box-shadow: 0 0 10px var(--border-cyan);
+}
+
+.category-games {
+  margin-top: 16px;
+}
+
+/* .game-grid already sets display:grid unconditionally, which has the same
+   specificity as the browser's default [hidden]{display:none} rule - author
+   rules of equal specificity win over the UA stylesheet, so without this the
+   grid would stay visible even while hidden. */
+.category-games[hidden] {
+  display: none;
+}
+
+.game-card {
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-cyan);
+  border-radius: 6px;
+  padding: 16px;
+  cursor: pointer;
+  text-align: center;
+  color: var(--body-white);
+  transition: box-shadow 0.12s ease, transform 0.12s ease, border-color 0.12s ease;
+  outline: none;
+}
+
+.game-card .card-title {
+  color: var(--title-yellow);
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 6px;
+  letter-spacing: 0.03em;
+}
+
+.game-card .card-system {
+  color: var(--body-white);
+  opacity: 0.7;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.game-card.selected {
+  border-color: var(--selected-magenta);
+  box-shadow: 0 0 8px var(--selected-magenta), 0 0 24px var(--selected-magenta);
+  transform: translateY(-4px);
+}
+
+.game-card.selected .card-title {
+  color: var(--title-yellow);
+  text-shadow: 0 0 8px var(--title-yellow);
+}
+
+.grid-empty {
+  text-align: center;
+  color: var(--body-white);
+  opacity: 0.75;
+  margin-top: 60px;
+  font-size: 15px;
+}
+.grid-empty code {
+  color: var(--title-yellow);
+}
+
+/* ---------- Player overlay ---------- */
+.player-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: #000;
+  flex-direction: column;
+}
+
+.player-overlay:not([hidden]) {
+  display: flex;
+}
+
+.player-frame {
+  flex: 1;
+  width: 100%;
+  border: none;
+}
+
+.player-close {
+  align-self: flex-end;
+  margin: 10px;
+  font-family: inherit;
+  font-weight: 700;
+  background: var(--btn-fill);
+  color: var(--title-yellow);
+  border: 2px solid var(--title-yellow);
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+.player-close:hover {
+  box-shadow: 0 0 10px var(--border-cyan);
+}
+
+/* ---------- Toast ---------- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  transform: translateX(-50%);
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-cyan);
+  color: var(--title-yellow);
+  padding: 12px 24px;
+  border-radius: 6px;
+  z-index: 1000;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- Exit button ---------- */
+.exit-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 12px;
+  z-index: 1000;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  padding: 5px 12px;
+  background: transparent;
+  color: var(--body-white);
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0.45;
+  transition: opacity 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.exit-btn:hover,
+.exit-btn:focus-visible {
+  outline: none;
+  opacity: 1;
+  color: var(--title-yellow);
+  border-color: var(--border-cyan);
+  box-shadow: 0 0 8px var(--border-cyan);
+}
