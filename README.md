@@ -54,10 +54,16 @@ legally-obtained copies of these three files and place them in `bios/`:
 - `scph5501.bin`
 - `scph7001.bin`
 
-For the `pcsx2_libretro` (LRPS2) core to run PlayStation 2 games, source your
-own legally-obtained PS2 BIOS dump (e.g. the `SCPH-70004` set: `.BIN`,
-`.EROM`, `.ROM1`, `.ROM2`) and place it in `bios/` as well — same shared
-`system_directory`, no extra config needed.
+The `pcsx2_libretro` (LRPS2) core does **not** look directly in `bios/` like
+the other cores — it requires this exact subfolder layout under the shared
+`system_directory`:
+- `bios/pcsx2/bios/` — your legally-obtained PS2 BIOS dump (e.g. the
+  `SCPH-70004` set: `.BIN`, `.EROM`, `.ROM1`, `.ROM2`)
+- `bios/pcsx2/resources/GameIndex.yaml` — the PCSX2 game compatibility
+  database. This is marked mandatory by the core (not just recommended) —
+  some games won't boot without it. Get it via RetroArch's Online Updater
+  ("Update PCSX2 GameIndex", if available) or from the official PCSX2
+  project, and place it at that exact path.
 
 `bios/Mupen64plus/` (an N64 ROM catalog + shader cache used by the
 `mupen64plus_next` core) ships as-is — it contains no console firmware, so
