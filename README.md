@@ -12,6 +12,8 @@ roms/
   genesis/    <- Sega Genesis/Mega Drive ROMs (.md, .bin, .gen)
   n64/        <- Nintendo 64 ROMs (.n64, .z64)
   psx/        <- PlayStation games (.bin/.cue, .chd)
+  ps2/        <- PlayStation 2 games (.iso, .chd) - needs the LRPS2 (pcsx2_libretro) core
+  PC/         <- ScummVM-supported PC games (see the scummvm_libretro core's docs)
 
 arcade-collection/
   <your-game-folder>/index.html   <- any standalone HTML5/JS game, auto-detected
@@ -43,7 +45,7 @@ A starter `retroarch.cfg` is at the project root: keyboard fallback on port 1,
 gamepad autodetect on ports 1-4 (up to 4 controllers, auto-assigned in
 connection order). Copy/merge it into your RetroArch config directory.
 
-## PSX BIOS files (required for PlayStation games)
+## PSX/PS2 BIOS files (required for PlayStation and PS2 games)
 
 `bios/` ships empty of BIOS dumps (no BIOS files are included in this repo).
 For the `pcsx_rearmed` core to run PlayStation games, source your own
@@ -51,6 +53,11 @@ legally-obtained copies of these three files and place them in `bios/`:
 - `scph1001.bin`
 - `scph5501.bin`
 - `scph7001.bin`
+
+For the `pcsx2_libretro` (LRPS2) core to run PlayStation 2 games, source your
+own legally-obtained PS2 BIOS dump (e.g. the `SCPH-70004` set: `.BIN`,
+`.EROM`, `.ROM1`, `.ROM2`) and place it in `bios/` as well — same shared
+`system_directory`, no extra config needed.
 
 `bios/Mupen64plus/` (an N64 ROM catalog + shader cache used by the
 `mupen64plus_next` core) ships as-is — it contains no console firmware, so

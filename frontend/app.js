@@ -18,8 +18,10 @@ const exitBtn = document.getElementById('exit-btn');
 const CATEGORY_ORDER = [
   { key: 'genesis', label: 'Sega Genesis' },
   { key: 'psx', label: 'Playstation' },
+  { key: 'ps2', label: 'PlayStation 2' },
   { key: 'snes', label: 'Super Nintendo' },
   { key: 'n64', label: 'Nintendo 64' },
+  { key: 'PC', label: 'PC' },
 ];
 
 let games = [];
