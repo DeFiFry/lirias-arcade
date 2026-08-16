@@ -18,6 +18,7 @@ const exitBtn = document.getElementById('exit-btn');
 const CATEGORY_ORDER = [
   { key: 'atari', label: 'Atari' },
   { key: 'genesis', label: 'Sega Genesis' },
+  { key: 'dreamcast', label: 'Dreamcast' },
   { key: 'psx', label: 'Playstation' },
   { key: 'ps2', label: 'PlayStation 2' },
   { key: 'snes', label: 'Super Nintendo' },
