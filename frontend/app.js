@@ -21,6 +21,7 @@ const CATEGORY_ORDER = [
   { key: 'psx', label: 'Playstation' },
   { key: 'ps2', label: 'PlayStation 2' },
   { key: 'snes', label: 'Super Nintendo' },
+  { key: 'nes', label: 'Nintendo' },
   { key: 'n64', label: 'Nintendo 64' },
   { key: 'PC', label: 'PC' },
 ];
