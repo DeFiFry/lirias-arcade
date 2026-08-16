@@ -3,6 +3,7 @@
   "retroarchPath": "E:/RetroArch/retroarch.exe",
   "coresDir": "E:/RetroArch/cores",
   "systems": {
+    "atari": { "label": "Atari", "core": "stella_libretro", "players": 2 },
     "fbneo": { "label": "FinalBurn Neo", "core": "fbneo_libretro", "players": 4 },
     "mame": { "label": "MAME", "core": "mame2003_plus_libretro", "players": 4 },
     "snes": { "label": "Super Nintendo", "core": "snes9x_libretro", "players": 2 },

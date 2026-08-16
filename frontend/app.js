@@ -16,6 +16,7 @@ const exitBtn = document.getElementById('exit-btn');
 // ROM systems are categorized this way (HTML5 collection games aren't part
 // of this menu); a category with zero games for it is filtered out entirely.
 const CATEGORY_ORDER = [
+  { key: 'atari', label: 'Atari' },
   { key: 'genesis', label: 'Sega Genesis' },
   { key: 'psx', label: 'Playstation' },
   { key: 'ps2', label: 'PlayStation 2' },
