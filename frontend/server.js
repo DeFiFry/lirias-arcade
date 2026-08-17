@@ -122,12 +122,27 @@ function scanRoms() {
     // files that reference a .bin next to it in the same folder - RetroArch
     // reads the sidecar automatically from the .bin path, so only the .bin
     // itself should show up as a selectable game.
+    //
+    // Flycast is the opposite: its cue/bin loader needs the .cue itself to
+    // get the track layout (the raw .bin alone has no table of contents), so
+    // systems opting into launchSidecar list the sidecar file and hide the
+    // .bin it describes instead.
     const sidecarExts = CONFIG.systems[system].discSidecarExts || [];
-    for (const file of fs.readdirSync(dir)) {
-      if (file.startsWith('.')) continue;
-      const full = path.join(dir, file);
-      if (!fs.statSync(full).isFile()) continue;
-      if (sidecarExts.includes(path.extname(file).toLowerCase())) continue;
+    const launchSidecar = !!CONFIG.systems[system].launchSidecar;
+    const files = fs.readdirSync(dir).filter((file) => {
+      if (file.startsWith('.')) return false;
+      return fs.statSync(path.join(dir, file)).isFile();
+    });
+    for (const file of files) {
+      const ext = path.extname(file).toLowerCase();
+      const isSidecar = sidecarExts.includes(ext);
+      if (launchSidecar) {
+        const base = path.parse(file).name;
+        const hasSidecar = sidecarExts.some((sidecarExt) => files.includes(base + sidecarExt));
+        if (!isSidecar && hasSidecar) continue;
+      } else if (isSidecar) {
+        continue;
+      }
       games.push({
         id: `rom:${system}:${file}`,
         title: humanize(file),
