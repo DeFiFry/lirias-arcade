@@ -12,6 +12,13 @@ const MUSIC_DIR = path.join(ROOT, 'Music');
 const RETROARCH_CONFIG_PATH = path.join(ROOT, 'retroarch.cfg');
 const CONFIG = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf8'));
 
+// A .gdi (Dreamcast GD-ROM) is an index that references one file per disc track
+// sitting beside it in the same folder. Those track files are disc innards, not
+// separately launchable games, so they are hidden the way sidecars are - but
+// they can't be matched by the basename rule below, since each carries its own
+// "_trackNN" suffix rather than sharing the index's basename.
+const GDI_TRACK_RE = /_track\d+\.(bin|raw)$/i;
+
 const PORT = process.env.PORT || 8080;
 
 const app = express();
@@ -136,6 +143,7 @@ function scanRoms() {
     for (const file of files) {
       const ext = path.extname(file).toLowerCase();
       const isSidecar = sidecarExts.includes(ext);
+      if (launchSidecar && GDI_TRACK_RE.test(file)) continue;
       if (launchSidecar) {
         const base = path.parse(file).name;
         const hasSidecar = sidecarExts.some((sidecarExt) => files.includes(base + sidecarExt));
