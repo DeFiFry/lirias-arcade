@@ -118,10 +118,16 @@ function scanRoms() {
   for (const system of Object.keys(CONFIG.systems)) {
     const dir = path.join(ROMS_DIR, system);
     if (!fs.existsSync(dir)) continue;
+    // Multi-track disc systems (e.g. psx) keep the .cue/.toc/.ccd/.sub sidecar
+    // files that reference a .bin next to it in the same folder - RetroArch
+    // reads the sidecar automatically from the .bin path, so only the .bin
+    // itself should show up as a selectable game.
+    const sidecarExts = CONFIG.systems[system].discSidecarExts || [];
     for (const file of fs.readdirSync(dir)) {
       if (file.startsWith('.')) continue;
       const full = path.join(dir, file);
       if (!fs.statSync(full).isFile()) continue;
+      if (sidecarExts.includes(path.extname(file).toLowerCase())) continue;
       games.push({
         id: `rom:${system}:${file}`,
         title: humanize(file),
