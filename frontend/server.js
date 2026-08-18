@@ -30,6 +30,10 @@ app.use('/music', express.static(MUSIC_DIR));
 function humanize(name) {
   return name
     .replace(/\.[^/.]+$/, '')
+    // Wii/GameCube dumps are commonly '<title>.nkit.iso' - stripping the real
+    // extension above leaves a trailing '.nkit', which is a container-format
+    // tag rather than part of the game's name.
+    .replace(/\.nkit$/i, '')
     .replace(/[-_]+/g, ' ')
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }

@@ -24,6 +24,7 @@ const CATEGORY_ORDER = [
   { key: 'snes', label: 'Super Nintendo' },
   { key: 'nes', label: 'Nintendo' },
   { key: 'n64', label: 'Nintendo 64' },
+  { key: 'wii', label: 'WII / GameCube' },
   { key: 'PC', label: 'PC' },
 ];
 
