@@ -11,7 +11,7 @@
     "genesis": { "label": "Sega Genesis", "core": "genesis_plus_gx_libretro", "players": 2 },
     "dreamcast": { "label": "Dreamcast", "core": "flycast_libretro", "players": 4, "discSidecarExts": [".gdi", ".cue"], "launchSidecar": true },
     "n64": { "label": "Nintendo 64", "core": "mupen64plus_next_libretro", "players": 4 },
-    "wii": { "label": "WII / GameCube", "core": "dolphin_libretro", "players": 4 },
+    "wii": { "label": "Wii / GameCube", "core": "dolphin_libretro", "players": 4 },
     "psx": { "label": "PlayStation", "core": "pcsx_rearmed_libretro", "players": 2, "discSidecarExts": [".cue", ".toc", ".ccd", ".sub"] },
     "ps2": { "label": "PlayStation 2", "core": "pcsx2_libretro", "players": 2 },
     "PC": { "label": "PC", "core": "scummvm_libretro", "players": 2 }

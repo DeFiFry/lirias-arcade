@@ -19,12 +19,12 @@ const CATEGORY_ORDER = [
   { key: 'atari', label: 'Atari' },
   { key: 'genesis', label: 'Sega Genesis' },
   { key: 'dreamcast', label: 'Dreamcast' },
-  { key: 'psx', label: 'Playstation' },
+  { key: 'psx', label: 'PlayStation' },
   { key: 'ps2', label: 'PlayStation 2' },
   { key: 'snes', label: 'Super Nintendo' },
   { key: 'nes', label: 'Nintendo' },
   { key: 'n64', label: 'Nintendo 64' },
-  { key: 'wii', label: 'WII / GameCube' },
+  { key: 'wii', label: 'Wii / GameCube' },
   { key: 'PC', label: 'PC' },
 ];
 
