@@ -22,3 +22,8 @@ music/*
 # PS2 BIOS dumps + game compatibility DB for the LRPS2 (pcsx2_libretro) core.
 # This core requires this exact subfolder layout - see README.
 /bios/pcsx2/
+
+# Dolphin's 'Sys' folder for the dolphin_libretro core (Wii/GameCube). ~2700
+# redistributable emulator data files, not firmware and not repo content -
+# RetroArch re-downloads them from buildbot.libretro.com/assets/system/Dolphin.zip.
+/bios/dolphin-emu/
