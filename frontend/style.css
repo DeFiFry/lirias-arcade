@@ -310,12 +310,18 @@ html, body {
   letter-spacing: 0.04em;
 }
 
-/* ---------- Exit button ---------- */
-.exit-btn {
+/* ---------- Corner buttons (music + exit) ---------- */
+.corner-controls {
   position: fixed;
   right: 16px;
   bottom: 12px;
   z-index: 1000;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.corner-btn {
   font-family: inherit;
   font-size: 11px;
   font-weight: 600;
@@ -330,11 +336,38 @@ html, body {
   transition: opacity 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.exit-btn:hover,
-.exit-btn:focus-visible {
+.corner-btn:hover,
+.corner-btn:focus-visible {
   outline: none;
   opacity: 1;
   color: var(--title-yellow);
   border-color: var(--border-cyan);
   box-shadow: 0 0 8px var(--border-cyan);
+}
+
+/* Music toggle - square-ish so it sits flush beside EXIT. The diagonal
+   slash inside the note only shows while music is muted. */
+.music-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 9px;
+}
+
+.music-btn[hidden] {
+  display: none;
+}
+
+.music-btn .music-slash {
+  display: none;
+}
+
+.music-btn.muted .music-slash {
+  display: inline;
+}
+
+/* Drawn under the visible slash in the page background colour, so the slash
+   reads as a clean cut through the note instead of merging with it. */
+.music-slash-cut {
+  stroke: var(--bg-primary);
 }

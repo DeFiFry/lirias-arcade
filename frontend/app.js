@@ -11,6 +11,7 @@ const playerClose = document.getElementById('player-close');
 const toastEl = document.getElementById('toast');
 const bgm = document.getElementById('bgm');
 const exitBtn = document.getElementById('exit-btn');
+const musicBtn = document.getElementById('music-btn');
 
 // Categories shown on the Choose Game screen, in this fixed order. Only
 // ROM systems are categorized this way (HTML5 collection games aren't part
@@ -52,20 +53,60 @@ function showToast(message, ms = 2500) {
 // ordering, timing, or which call site fires it.
 let musicLocked = false;
 
+// Separate from musicLocked: this one is the user's own on/off choice from the
+// music button. It outranks every automatic playMusic() call (screen changes,
+// closing a game, the autoplay-unlock listeners), so once it's off it stays
+// off until the user clicks the button again. Defaults to on.
+let musicMuted = false;
+
+// The button icon shows the real state, so a game launch (which sets
+// musicLocked) slashes the note just like a manual mute does. A ROM launch
+// never gets a "closed" event back from RetroArch, so clicking the button is
+// the only way to bring the music back after one - clearing both flags is
+// therefore what an "on" click has to do.
+function musicIsOff() {
+  return musicLocked || musicMuted;
+}
+
+function syncMusicButton() {
+  const off = musicIsOff();
+  musicBtn.classList.toggle('muted', off);
+  musicBtn.setAttribute('aria-pressed', String(off));
+  const label = off ? 'Turn music on' : 'Turn music off';
+  musicBtn.title = label;
+  musicBtn.setAttribute('aria-label', label);
+}
+
 function playMusic() {
-  if (musicLocked) return;
+  if (musicIsOff()) return;
   const p = bgm.play();
   if (p && typeof p.catch === 'function') p.catch(() => {});
+}
+
+function toggleMusic() {
+  if (musicIsOff()) {
+    musicMuted = false;
+    musicLocked = false;
+    syncMusicButton();
+    playMusic();
+  } else {
+    musicMuted = true;
+    syncMusicButton();
+    // Pause rather than stop, so turning it back on picks the track back up.
+    bgm.pause();
+  }
 }
 
 function stopMusic() {
   musicLocked = true;
   bgm.pause();
   bgm.currentTime = 0;
+  syncMusicButton();
 }
 
 function unlockMusic() {
   musicLocked = false;
+  syncMusicButton();
 }
 
 function setScreen(name) {
@@ -283,6 +324,7 @@ async function launchGame(game) {
       playerFrame.src = data.url;
       playerOverlay.hidden = false;
       exitBtn.hidden = true;
+      musicBtn.hidden = true;
     } else if (data.type === 'rom') {
       showToast(`Launching "${game.title}" in RetroArch...`);
     }
@@ -297,6 +339,7 @@ function closePlayer() {
   playerOverlay.hidden = true;
   playerFrame.src = 'about:blank';
   exitBtn.hidden = false;
+  musicBtn.hidden = false;
   unlockMusic();
   playMusic();
 }
@@ -311,10 +354,29 @@ async function shutdownServer() {
   } catch (err) {
     // Server closing the connection while responding is expected here.
   }
-  showToast('Server stopped. You can close this tab.', 8000);
+  showToast('Server stopped. Closing this tab...', 8000);
+  setTimeout(closeArcadeTab, 1200);
+}
+
+// Chrome allows window.close() on a tab with no navigation history of its own,
+// which is what Launch-Arcade.bat produces ("start" opens the arcade straight
+// into a fresh tab). If the user got here some other way - typed the URL, hit
+// back/forward - the call is silently ignored and nothing tells us so, hence
+// the fallback message if we're still alive a moment later.
+function closeArcadeTab() {
+  try {
+    window.close();
+  } catch (err) {
+    // Ignored - handled by the fallback message below.
+  }
+  setTimeout(() => {
+    showToast('Server stopped. You can close this tab.', 8000);
+  }, 700);
 }
 
 exitBtn.addEventListener('click', shutdownServer);
+
+musicBtn.addEventListener('click', toggleMusic);
 
 chooseBtn.addEventListener('click', () => {
   setScreen('grid');
