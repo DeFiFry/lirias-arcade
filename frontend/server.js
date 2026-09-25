@@ -10,7 +10,43 @@ const ROMS_DIR = path.join(ROOT, 'roms');
 const COLLECTION_DIR = path.join(ROOT, 'arcade-collection');
 const MUSIC_DIR = path.join(ROOT, 'Music');
 const RETROARCH_CONFIG_PATH = path.join(ROOT, 'retroarch.cfg');
-const CONFIG = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf8'));
+const CONFIG = loadConfig();
+const cabinet = require('./cabinet');
+try { cabinet.init(CONFIG.cabinet); } catch (err) { console.error('[cabinet] init failed:', err.message); }
+
+// A double press can fire two launch requests before the first RetroArch
+// window appears; two instances would fight over the same command port.
+let lastRomLaunch = 0;
+
+// config.json holds the shared settings. An optional, git-ignored
+// config.local.json next to it is merged on top (per system, key by key) for
+// personal, per-install settings - e.g. coreOverrides or cabinetToggles that
+// name specific ROM files.
+function loadConfig() {
+  const base = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf8'));
+  const localPath = path.join(__dirname, 'config.local.json');
+  if (!fs.existsSync(localPath)) return base;
+  let local;
+  try {
+    local = JSON.parse(fs.readFileSync(localPath, 'utf8'));
+  } catch (err) {
+    console.error(`config.local.json ignored - it isn't valid JSON (${err.message})`);
+    return base;
+  }
+  for (const [key, value] of Object.entries(local || {})) {
+    if (key === 'systems') {
+      if (!value || typeof value !== 'object') continue;
+      for (const [sys, sysValue] of Object.entries(value)) {
+        base.systems[sys] = { ...(base.systems[sys] || {}), ...sysValue };
+      }
+    } else if (value && typeof value === 'object' && !Array.isArray(value)) {
+      base[key] = { ...(base[key] || {}), ...value };
+    } else {
+      base[key] = value;
+    }
+  }
+  return base;
+}
 
 // A .gdi (Dreamcast GD-ROM) is an index that references one file per disc track
 // sitting beside it in the same folder. Those track files are disc innards, not
@@ -210,8 +246,13 @@ app.post('/api/launch', (req, res) => {
 
     const romPath = path.join(ROMS_DIR, system, file);
     if (!fs.existsSync(romPath)) return res.status(404).json({ error: `ROM not found: ${file}` });
+    if (Date.now() - lastRomLaunch < 3000) return res.json({ type: 'rom', launched: false, ignored: 'already launching' });
+    lastRomLaunch = Date.now();
 
-    const corePath = path.join(CONFIG.coresDir, `${systemConfig.core}${coreExtension()}`);
+    // Optional per-game core, matched by exact file name (e.g. the widescreen
+    // Genesis core for one modded ROM); every other game uses the system core.
+    const coreName = (systemConfig.coreOverrides && systemConfig.coreOverrides[file]) || systemConfig.core;
+    const corePath = path.join(CONFIG.coresDir, `${coreName}${coreExtension()}`);
     if (!fs.existsSync(corePath)) {
       return res.status(500).json({
         error: `Core not found at ${corePath}. Edit frontend/config.json coresDir to point at your RetroArch cores folder.`,
@@ -223,9 +264,20 @@ app.post('/api/launch', (req, res) => {
     // RetroArch install's own default config has, without needing every
     // setting duplicated here or the user's global config touched.
     const args = ['-L', corePath, romPath];
-    if (fs.existsSync(RETROARCH_CONFIG_PATH)) {
-      args.push(`--appendconfig=${RETROARCH_CONFIG_PATH}`);
+    const appendConfigs = [];
+    if (fs.existsSync(RETROARCH_CONFIG_PATH)) appendConfigs.push(RETROARCH_CONFIG_PATH);
+
+    // Arcade-cabinet side art over the black bars (see cabinet.js). A failure
+    // here must never stop the game from launching.
+    try {
+      const toggle = systemConfig.cabinetToggles && systemConfig.cabinetToggles[file];
+      const cabinetCfg = cabinet.prepareLaunch({ system, file, core: coreName, systemConfig, toggle });
+      if (cabinetCfg) appendConfigs.push(cabinetCfg);
+    } catch (err) {
+      console.error('[cabinet] disabled for this launch:', err.message);
     }
+    // RetroArch layers several --appendconfig files separated by '|'.
+    if (appendConfigs.length) args.push(`--appendconfig=${appendConfigs.join('|')}`);
 
     try {
       const child = spawn(CONFIG.retroarchPath, args, {
@@ -234,6 +286,7 @@ app.post('/api/launch', (req, res) => {
       });
       child.unref();
       bringToForeground(child.pid);
+      try { cabinet.watch(child); } catch (err) { console.error('[cabinet] watch failed:', err.message); }
       return res.json({ type: 'rom', launched: true });
     } catch (err) {
       return res.status(500).json({ error: `Failed to launch RetroArch: ${err.message}` });

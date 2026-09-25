@@ -6,7 +6,9 @@ echo   Liria's Arcade
 echo ============================================
 echo.
 
-if exist "node_modules" goto start_server
+rem Install/refresh dependencies on first run, and again whenever a newer
+rem version adds one (pngjs is used for the arcade-cabinet side art).
+if exist "node_modules\pngjs" goto start_server
 
 echo Installing dependencies (first run only)...
 call npm install

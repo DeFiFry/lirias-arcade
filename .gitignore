@@ -31,3 +31,10 @@ music/*
 # Streets of Rage ROM-hack workspace (private mod tooling, patches, backups,
 # music, notes). Nothing in here is repo content - see sor-mod/SOR-MOD-RULES.pdf.
 /sor-mod/
+
+# Personal frontend settings merged over frontend/config.json (may name ROM files).
+frontend/config.local.json
+
+# Generated arcade-cabinet overlays, measurements and temp screenshots
+# (rebuilt automatically from frontend/assets/left-side.png + right-side.png).
+frontend/assets/cabinet-cache/

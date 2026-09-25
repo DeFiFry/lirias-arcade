@@ -2,18 +2,25 @@
   "_comment": "EDIT THIS FILE to match your local RetroArch install before launching ROM games.",
   "retroarchPath": "E:/RetroArch/retroarch.exe",
   "coresDir": "E:/RetroArch/cores",
+  "cabinet": {
+    "_comment": "Arcade-cabinet side art: assets/left-side.png + right-side.png cover the black bars beside any game that has them. Set enabled to false to turn it off. screenWidth/screenHeight 0 = detect your display. Per system, cabinetAspect is the picture shape its core shows (default 4:3); each game is also measured on its first launch and remembered.",
+    "enabled": true,
+    "screenWidth": 0,
+    "screenHeight": 0,
+    "commandPort": 55355
+  },
   "systems": {
-    "atari": { "label": "Atari", "core": "stella_libretro", "players": 2 },
-    "fbneo": { "label": "FinalBurn Neo", "core": "fbneo_libretro", "players": 4 },
-    "mame": { "label": "MAME", "core": "mame2003_plus_libretro", "players": 4 },
+    "atari": { "label": "Atari", "core": "stella_libretro", "players": 2, "cabinetAspect": 1.2028 },
+    "fbneo": { "label": "FinalBurn Neo", "core": "fbneo_libretro", "players": 4, "cabinetPerGame": true },
+    "mame": { "label": "MAME", "core": "mame2003_plus_libretro", "players": 4, "cabinetPerGame": true },
     "snes": { "label": "Super Nintendo", "core": "snes9x_libretro", "players": 2 },
-    "nes": { "label": "Nintendo", "core": "mesen_libretro", "players": 2 },
-    "genesis": { "label": "Sega Genesis", "core": "genesis_plus_gx_libretro", "players": 2, "discSidecarExts": [".cue"] },
-    "dreamcast": { "label": "Dreamcast", "core": "flycast_libretro", "players": 4, "discSidecarExts": [".gdi", ".cue"], "launchSidecar": true },
+    "nes": { "label": "Nintendo", "core": "mesen_libretro", "players": 2, "cabinetAspect": 1.2194 },
+    "genesis": { "label": "Sega Genesis", "core": "genesis_plus_gx_libretro", "players": 2, "cabinetAspect": 1.3065, "discSidecarExts": [".cue"] },
+    "dreamcast": { "label": "Dreamcast", "core": "flycast_libretro", "players": 4, "discSidecarExts": [".gdi", ".cue"], "launchSidecar": true, "cabinetRecheck": true },
     "n64": { "label": "Nintendo 64", "core": "mupen64plus_next_libretro", "players": 4 },
-    "wii": { "label": "Wii / GameCube", "core": "dolphin_libretro", "players": 4 },
+    "wii": { "label": "Wii / GameCube", "core": "dolphin_libretro", "players": 4, "cabinetRecheck": true },
     "psx": { "label": "PlayStation", "core": "pcsx_rearmed_libretro", "players": 2, "discSidecarExts": [".cue", ".toc", ".ccd", ".sub"] },
-    "ps2": { "label": "PlayStation 2", "core": "pcsx2_libretro", "players": 2 },
+    "ps2": { "label": "PlayStation 2", "core": "pcsx2_libretro", "players": 2, "cabinetRecheck": true },
     "PC": { "label": "PC", "core": "scummvm_libretro", "players": 2 }
   }
 }

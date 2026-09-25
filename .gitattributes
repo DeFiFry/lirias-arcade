@@ -1,0 +1,8 @@
+# Keep binary files byte-exact and Windows scripts in CRLF on every checkout
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.gif binary
+*.bat text eol=crlf
