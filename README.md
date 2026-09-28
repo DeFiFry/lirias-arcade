@@ -45,7 +45,7 @@ A starter `retroarch.cfg` is at the project root: keyboard fallback on port 1,
 gamepad autodetect on ports 1-4 (up to 4 controllers, auto-assigned in
 connection order). Copy/merge it into your RetroArch config directory.
 
-## PSX/PS2 BIOS files (required for PlayStation and PS2 games)
+## BIOS files (PlayStation, PS2 and Dreamcast)
 
 `bios/` ships empty of BIOS dumps (no BIOS files are included in this repo).
 For the `pcsx_rearmed` core to run PlayStation games, source your own
@@ -65,8 +65,14 @@ the other cores — it requires this exact subfolder layout under the shared
   ("Update PCSX2 GameIndex", if available) or from the official PCSX2
   project, and place it at that exact path.
 
-`bios/Mupen64plus/` (an N64 ROM catalog + shader cache used by the
+The `flycast` core needs a Dreamcast BIOS in `bios/dc/`: place your
+legally-obtained `dc_boot.bin` and `dc_flash.bin` there. Flycast creates its
+own memory-card saves (`vmu_save_*.bin`), `dc_nvmem.bin` and shader cache in
+the same folder on first run.
+
+`bios/Mupen64plus/mupen64plus.ini` (the public N64 ROM catalog used by the
 `mupen64plus_next` core) ships as-is — it contains no console firmware, so
-there's nothing to source for N64.
+there's nothing to source for N64. Its shader cache is built automatically
+the first time you play.
 
 See `INSTALL_GUIDE.pdf` for full setup instructions.
