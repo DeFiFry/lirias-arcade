@@ -369,9 +369,15 @@ async function checkToggle(s) {
     if (!(await isPlaying()) || !s.alive) return;
     let addr = parseInt(s.toggle.address, 16);
     if (s.toggle.byteSwapped !== false) addr ^= 1;
-    const reply = await command(`READ_CORE_MEMORY ${addr.toString(16).toUpperCase()} 1`, true);
+    // A cartridge-only game (no MSU-MD .cue) gets no core memory map, so
+    // READ_CORE_MEMORY fails; READ_CORE_RAM addresses the 64KB work RAM from 0.
+    const useRam = s.readRam;
+    const reply = useRam
+      ? await command(`READ_CORE_RAM ${(addr & 0xFFFF).toString(16).toUpperCase()} 1`, true)
+      : await command(`READ_CORE_MEMORY ${addr.toString(16).toUpperCase()} 1`, true);
     if (!reply || !s.alive) return;
-    const m = /READ_CORE_MEMORY\s+\S+\s+([0-9a-f]{2})/i.exec(reply);
+    if (!useRam && /no memory map/i.test(reply)) { s.readRam = true; return; }
+    const m = /READ_CORE_(?:MEMORY|RAM)\s+\S+\s+([0-9a-f]{2})/i.exec(reply);
     if (!m) return;
     await show(s, parseInt(m[1], 16) === (s.toggle.arcadeValue ?? 1));
   } finally { s.busy = false; }
