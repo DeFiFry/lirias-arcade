@@ -114,6 +114,36 @@ html, body {
   background-repeat: no-repeat;
   padding: 32px 40px;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--selected-magenta) var(--bg-primary);
+}
+
+/* Themed scrollbar for the Select Your Game list - magenta highlight glow. */
+@supports selector(::-webkit-scrollbar) {
+  #grid-screen {
+    scrollbar-width: auto;
+    scrollbar-color: auto;
+  }
+}
+
+#grid-screen::-webkit-scrollbar {
+  width: 10px;
+}
+
+#grid-screen::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+#grid-screen::-webkit-scrollbar-thumb {
+  background: var(--selected-magenta);
+  border-radius: 6px;
+  border: 2px solid var(--bg-primary);
+  box-shadow: 0 0 8px var(--selected-magenta);
+}
+
+#grid-screen::-webkit-scrollbar-thumb:hover {
+  background: #FF5CD8;
+  box-shadow: 0 0 8px var(--selected-magenta), 0 0 24px var(--selected-magenta);
 }
 
 .grid-header {
