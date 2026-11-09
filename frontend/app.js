@@ -192,6 +192,13 @@ function renderCategories() {
       title.textContent = game.title;
       card.appendChild(title);
 
+      if (game.info) {
+        const info = document.createElement('div');
+        info.className = 'card-info';
+        info.textContent = game.info;
+        card.appendChild(info);
+      }
+
       const sys = document.createElement('div');
       sys.className = 'card-system';
       sys.textContent = game.systemLabel || game.system;

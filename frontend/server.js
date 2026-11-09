@@ -85,6 +85,65 @@ function humanize(name) {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+// ---- The names shown on screen ----
+// Files are never renamed: cue/gdi track lists, saves, save states and
+// per-game settings all depend on the exact file names. titles.json maps each
+// '<system>/<file>' to the name shown instead (plus a small info line and an
+// optional sort key); anything not listed gets cleanTitle() below.
+const TITLES_PATH = path.join(__dirname, 'titles.json');
+const PATCH_EXTS = ['.ips', '.bps', '.ups'];
+
+function loadTitles() {
+  try {
+    return JSON.parse(fs.readFileSync(TITLES_PATH, 'utf8'));
+  } catch (err) {
+    if (err.code !== 'ENOENT') console.error('[titles] titles.json unreadable, using file names:', err.message);
+    return {};
+  }
+}
+
+// A readable name from a file name: no extension, no (USA)/[T-En]/(Rev A)
+// style tags, underscores as spaces, and only the first letter of each word
+// raised (never the s after an apostrophe, as in "Tyson's").
+function cleanTitle(file) {
+  const tags = [];
+  let name = file
+    .replace(/\.[^/.]+$/, '')
+    .replace(/\.nkit$/i, '')
+    .replace(/\s*[([]([^)\]]*)[)\]]/g, (m, tag) => { tags.push(tag.trim()); return ''; })
+    .replace(/_+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/(^|\s)([a-z])/g, (m, sp, c) => sp + c.toUpperCase());
+  const disc = tags.find((t) => /^disc\s*\d+$/i.test(t));
+  if (disc) name += ` (Disc ${disc.match(/\d+/)[0]})`;
+  return { title: name || file, info: tags.filter((t) => t !== disc).join(', ') };
+}
+
+function displayName(titles, system, file) {
+  const entry = titles[`${system}/${file}`];
+  if (entry && entry.title) return { title: entry.title, info: entry.info || '', sort: entry.sort || '' };
+  const clean = cleanTitle(file);
+  return { title: clean.title, info: clean.info, sort: '' };
+}
+
+// Alphabetical, with a series in release order: II/III count as 2/3 and
+// numbers compare as numbers, and a game comes right before its own
+// subtitled or modded versions ("Golden Axe", "Golden Axe - Mod",
+// "Golden Axe II"). A 'sort' key in titles.json overrides the title.
+const collator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' });
+const ROMAN = { ii: 2, iii: 3, iv: 4, vi: 6, vii: 7, viii: 8, ix: 9 };
+function sortParts(text) {
+  const t = String(text).toLowerCase().replace(/\b(ii|iii|iv|vi|vii|viii|ix)\b/g, (r) => ROMAN[r]);
+  const cut = t.search(/: | - | \(/);
+  return cut === -1 ? [t, ''] : [t.slice(0, cut), t.slice(cut).replace(/^[:\s-]+|^ \(/, '')];
+}
+function compareGames(a, b) {
+  const [am, ar] = sortParts(a.sortKey || a.title);
+  const [bm, br] = sortParts(b.sortKey || b.title);
+  return collator.compare(am, bm) || (ar === '' ? 0 : 1) - (br === '' ? 0 : 1) || collator.compare(ar, br);
+}
+
 function coreExtension() {
   if (process.platform === 'win32') return '.dll';
   if (process.platform === 'darwin') return '.dylib';
@@ -193,6 +252,7 @@ if ($title) {
 
 function scanRoms() {
   const games = [];
+  const titles = loadTitles();
   for (const system of Object.keys(CONFIG.systems)) {
     const dir = path.join(ROMS_DIR, system);
     if (!fs.existsSync(dir)) continue;
@@ -222,9 +282,15 @@ function scanRoms() {
       } else if (isSidecar) {
         continue;
       }
+      // A .ips/.bps/.ups is a patch RetroArch applies to the ROM of the same
+      // name, never a game of its own: launching one only fails.
+      if (PATCH_EXTS.includes(ext)) continue;
+      const shown = displayName(titles, system, file);
       games.push({
         id: `rom:${system}:${file}`,
-        title: humanize(file),
+        title: shown.title,
+        info: shown.info,
+        sortKey: shown.sort,
         type: 'rom',
         system,
         systemLabel: CONFIG.systems[system].label,
@@ -255,7 +321,7 @@ function scanHtml5() {
 }
 
 app.get('/api/games', (req, res) => {
-  res.json({ games: [...scanHtml5(), ...scanRoms()] });
+  res.json({ games: [...scanHtml5(), ...scanRoms()].sort(compareGames) });
 });
 
 app.post('/api/launch', (req, res) => {
@@ -317,7 +383,7 @@ app.post('/api/launch', (req, res) => {
         stdio: 'ignore',
       });
       child.unref();
-      const title = humanize(file);
+      const title = displayName(loadTitles(), system, file).title;
       const running = { pid: child.pid, title };
       runningRom = running;
       const ended = () => { if (runningRom === running) runningRom = null; };

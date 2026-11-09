@@ -76,3 +76,21 @@ there's nothing to source for N64. Its shader cache is built automatically
 the first time you play.
 
 See `INSTALL_GUIDE.pdf` for full setup instructions.
+
+## Game names (frontend/titles.json)
+
+ROM files are never renamed: cue/gdi track lists, saves, save states and
+per-game settings all depend on the exact file names. The name shown on each
+card comes from `frontend/titles.json`, keyed `<system>/<file name>`, with a
+small grey info line (region, revision, translation, mod) and an optional
+`sort` key. It is read on every page load, so edits show after a refresh.
+
+- "The", "A" and owner names go after the main name: `Lion King, The, Disney's`.
+- A real subtitle follows a colon: `Grand Theft Auto: Vice City`.
+- ` - Mod` marks a mod, listed right after the original game.
+- Discs are `(Disc 1)`, `(Disc 2)`.
+- Each system is alphabetical, with a series in release order (II/III sort as
+  2/3; `sort` fixes the rest, e.g. Sonic & Knuckles after Sonic 3).
+
+A new game not listed yet still shows a cleaned-up file name (tags in
+brackets removed). Patch files (.ips/.bps/.ups) are not listed as games.

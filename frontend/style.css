@@ -259,6 +259,13 @@ html, body {
   letter-spacing: 0.03em;
 }
 
+.game-card .card-info {
+  color: var(--body-white);
+  opacity: 0.5;
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
 .game-card .card-system {
   color: var(--body-white);
   opacity: 0.7;
