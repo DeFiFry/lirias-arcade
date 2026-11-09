@@ -47,3 +47,7 @@ frontend/config.local.json
 # Generated arcade-cabinet overlays, measurements and temp screenshots
 # (rebuilt automatically from frontend/assets/left-side.png + right-side.png).
 frontend/assets/cabinet-cache/
+
+# Game saves and save states (retroarch.cfg points RetroArch here). Backed
+# up by Dropbox, never GitHub.
+/game-saves/
