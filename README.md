@@ -94,3 +94,14 @@ small grey info line (region, revision, translation, mod) and an optional
 
 A new game not listed yet still shows a cleaned-up file name (tags in
 brackets removed). Patch files (.ips/.bps/.ups) are not listed as games.
+
+### "Fix the title for X in Lirias-Arcade"
+
+1. Find the game's file in `roms/<system>/` (match on any part of the name).
+2. Add or edit its entry in `frontend/titles.json` (`"<system>/<exact file name>"`)
+   using the rules above. Check the name as the game is known on its box and
+   in ads; put region / revision / translation / mod in `info`; add `sort`
+   only if the alphabet would put a series out of release order.
+3. Never rename, move or edit the ROM, cue, bin or track files.
+4. Check it: `curl -s http://localhost:8080/api/games` shows the new title and
+   order (no restart needed), then commit and push.
