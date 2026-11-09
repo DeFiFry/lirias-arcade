@@ -166,5 +166,6 @@
   "ps2/Vice City.ISO": { "title": "Grand Theft Auto: Vice City", "sort": "Grand Theft Auto 3.1" },
   "ps2/Grand Theft Auto Vice City Mod.iso": { "title": "Grand Theft Auto: Vice City - Mod", "info": "Liria's Arcade mod", "sort": "Grand Theft Auto 3.1 - Mod" },
   "ps2/Max Payne.iso": { "title": "Max Payne" },
-  "ps2/Metal Gear Solid 2 - Sons of Liberty (USA).iso": { "title": "Metal Gear Solid 2: Sons of Liberty", "info": "USA" }
+  "ps2/Metal Gear Solid 2 - Sons of Liberty (USA).iso": { "title": "Metal Gear Solid 2: Sons of Liberty", "info": "USA" },
+  "ps2/Metal Gear Solid 2 Mod.iso": { "title": "Metal Gear Solid 2: Sons of Liberty - Mod", "info": "Liria's Arcade mod" }
 }
