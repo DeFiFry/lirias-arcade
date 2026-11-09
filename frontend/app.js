@@ -326,7 +326,12 @@ async function launchGame(game) {
       exitBtn.hidden = true;
       musicBtn.hidden = true;
     } else if (data.type === 'rom') {
-      showToast(`Launching "${game.title}" in RetroArch...`);
+      if (data.launched === false && data.ignored === 'game running') {
+        showToast(`"${data.title}" is still open. Close it first.`, 3000);
+      } else {
+        showToast(`Launching "${game.title}" in RetroArch...`);
+      }
+      watchRomGame();
     }
   } catch (err) {
     showToast('Launch failed: ' + err.message, 4000);
@@ -334,6 +339,36 @@ async function launchGame(game) {
     playMusic();
   }
 }
+
+// While a RetroArch game is open the controller belongs to the game. Chrome
+// keeps reading the pad in the background, so this page drops every button
+// and stick input until the server says the game has closed.
+let romGameOpen = false;
+let romWatchTimer = null;
+
+async function checkRomGame() {
+  try {
+    const res = await fetch('/api/status', { cache: 'no-store' });
+    const data = await res.json();
+    romGameOpen = !!data.romRunning;
+  } catch {
+    romGameOpen = false; // server gone: nothing can be running from here
+  }
+  if (!romGameOpen && romWatchTimer) {
+    clearInterval(romWatchTimer);
+    romWatchTimer = null;
+  }
+  return romGameOpen;
+}
+
+function watchRomGame() {
+  romGameOpen = true;
+  if (romWatchTimer) return;
+  romWatchTimer = setInterval(checkRomGame, 1000);
+}
+
+// A page opened (or reloaded) while a game is already running.
+checkRomGame().then((open) => { if (open) watchRomGame(); });
 
 function closePlayer() {
   playerOverlay.hidden = true;
@@ -460,6 +495,15 @@ function pollGamepads() {
     const dpadRight = pad.buttons[15] && pad.buttons[15].pressed;
     const btnA = pad.buttons[0] && pad.buttons[0].pressed;
     const btnB = pad.buttons[1] && pad.buttons[1].pressed;
+
+    if (romGameOpen) {
+      // In a RetroArch game: remember the buttons (so one still held when the
+      // game closes doesn't fire on the menu) and do nothing else.
+      state.prevButtons[0] = btnA;
+      state.prevButtons[1] = btnB;
+      state.lastMoveAt = now;
+      continue;
+    }
 
     const up = dpadUp || axisY < -0.5;
     const down = dpadDown || axisY > 0.5;

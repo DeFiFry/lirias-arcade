@@ -18,6 +18,17 @@ try { cabinet.init(CONFIG.cabinet); } catch (err) { console.error('[cabinet] ini
 // window appears; two instances would fight over the same command port.
 let lastRomLaunch = 0;
 
+// The RetroArch game running right now (null when none). While one is open the
+// arcade page ignores its controller and a second launch is refused: Chrome
+// still reads the pad in the background, so without this every button press in
+// the game could open the same game again.
+let runningRom = null; // { pid, title }
+
+// For a PowerShell single-quoted string: double the quotes, drop anything odd.
+function psQuote(text) {
+  return String(text).replace(/[\r\n\0`$"]/g, '').replace(/'/g, "''").slice(0, 200);
+}
+
 // config.json holds the shared settings. An optional, git-ignored
 // config.local.json next to it is merged on top (per system, key by key) for
 // personal, per-install settings - e.g. coreOverrides or cabinetToggles that
@@ -88,7 +99,7 @@ function coreExtension() {
 // queue to the current foreground thread before calling SetForegroundWindow is
 // the standard way around that lock. Polling for the child's main window handle
 // this way fixes focus without touching how the game itself is launched.
-function bringToForeground(pid) {
+function bringToForeground(pid, title) {
   if (process.platform !== 'win32') return;
   const script = `
 $ErrorActionPreference = 'SilentlyContinue'
@@ -104,9 +115,15 @@ public class ArcadeFocus {
   [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
   [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
   [DllImport("user32.dll")] public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+  [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern bool SetWindowText(IntPtr hWnd, string lpString);
+  [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder s, int n);
   [DllImport("user32.dll")] public static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
 }
 "@
+# The game's name as the window title (taskbar / Alt-Tab), instead of
+# RetroArch's own. RetroArch can set its title again while a core starts up,
+# so after focusing, keep putting it back for the first minute.
+$title = '${psQuote(title || '')}'
 $HWND_TOPMOST = [IntPtr]::new(-1)
 $HWND_NOTOPMOST = [IntPtr]::new(-2)
 $SWP_NOMOVE_NOSIZE = 0x3
@@ -147,6 +164,20 @@ while ((Get-Date) -lt $deadline) {
     break
   }
   Start-Sleep -Milliseconds 200
+}
+if ($title) {
+  $until = (Get-Date).AddSeconds(60)
+  $sb = New-Object System.Text.StringBuilder 512
+  while ((Get-Date) -lt $until) {
+    $p = Get-Process -Id ${pid} -ErrorAction SilentlyContinue
+    if (-not $p) { break }
+    if ($p.MainWindowHandle -ne 0) {
+      [void]$sb.Clear()
+      [ArcadeFocus]::GetWindowText($p.MainWindowHandle, $sb, 512) | Out-Null
+      if ($sb.ToString() -ne $title) { [ArcadeFocus]::SetWindowText($p.MainWindowHandle, $title) | Out-Null }
+    }
+    Start-Sleep -Milliseconds 500
+  }
 }
 `;
   // detached:true is deliberately NOT used here (unlike the game spawn below) -
@@ -246,6 +277,7 @@ app.post('/api/launch', (req, res) => {
 
     const romPath = path.join(ROMS_DIR, system, file);
     if (!fs.existsSync(romPath)) return res.status(404).json({ error: `ROM not found: ${file}` });
+    if (runningRom) return res.json({ type: 'rom', launched: false, ignored: 'game running', title: runningRom.title });
     if (Date.now() - lastRomLaunch < 3000) return res.json({ type: 'rom', launched: false, ignored: 'already launching' });
     lastRomLaunch = Date.now();
 
@@ -285,7 +317,13 @@ app.post('/api/launch', (req, res) => {
         stdio: 'ignore',
       });
       child.unref();
-      bringToForeground(child.pid);
+      const title = humanize(file);
+      const running = { pid: child.pid, title };
+      runningRom = running;
+      const ended = () => { if (runningRom === running) runningRom = null; };
+      child.on('exit', ended);
+      child.on('error', ended);
+      bringToForeground(child.pid, title);
       try { cabinet.watch(child); } catch (err) { console.error('[cabinet] watch failed:', err.message); }
       return res.json({ type: 'rom', launched: true });
     } catch (err) {
@@ -294,6 +332,12 @@ app.post('/api/launch', (req, res) => {
   }
 
   return res.status(400).json({ error: `Unknown game id: ${id}` });
+});
+
+// The arcade page asks this while a RetroArch game is open, and takes the
+// controller back once it says nothing is running.
+app.get('/api/status', (req, res) => {
+  res.json({ romRunning: !!runningRom, title: runningRom ? runningRom.title : null });
 });
 
 app.post('/api/shutdown', (req, res) => {
