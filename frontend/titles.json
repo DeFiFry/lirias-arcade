@@ -165,7 +165,11 @@
   "ps2/Grand Theft Auto III Mod.iso": { "title": "Grand Theft Auto III - Mod", "info": "Liria's Arcade mod" },
   "ps2/Vice City.ISO": { "title": "Grand Theft Auto: Vice City", "sort": "Grand Theft Auto 3.1" },
   "ps2/Grand Theft Auto Vice City Mod.iso": { "title": "Grand Theft Auto: Vice City - Mod", "info": "Liria's Arcade mod", "sort": "Grand Theft Auto 3.1 - Mod" },
+  "ps2/Grand Theft Auto - San Andreas (USA) (v3.00).iso": { "title": "Grand Theft Auto: San Andreas", "info": "USA, v3.00", "sort": "Grand Theft Auto 3.2" },
+  "ps2/Manhunt (USA).iso": { "title": "Manhunt", "info": "USA" },
+  "ps2/Manhunt 2 (USA).iso": { "title": "Manhunt 2", "info": "USA" },
   "ps2/Max Payne.iso": { "title": "Max Payne" },
   "ps2/Metal Gear Solid 2 - Sons of Liberty (USA).iso": { "title": "Metal Gear Solid 2: Sons of Liberty", "info": "USA" },
-  "ps2/Metal Gear Solid 2 Mod.iso": { "title": "Metal Gear Solid 2: Sons of Liberty - Mod", "info": "Liria's Arcade mod" }
+  "ps2/Metal Gear Solid 2 Mod.iso": { "title": "Metal Gear Solid 2: Sons of Liberty - Mod", "info": "Liria's Arcade mod" },
+  "ps2/Metal Gear Solid 3 - Snake Eater (USA).iso": { "title": "Metal Gear Solid 3: Snake Eater", "info": "USA" }
 }
