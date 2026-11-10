@@ -180,8 +180,9 @@ public class ArcadeFocus {
 }
 "@
 # The game's name as the window title (taskbar / Alt-Tab), instead of
-# RetroArch's own. RetroArch can set its title again while a core starts up,
-# so after focusing, keep putting it back for the first minute.
+# RetroArch's own. RetroArch can set its title again at any time (slow PS2
+# boots, video re-inits), so after focusing, keep putting it back for as long
+# as this RetroArch is running. One title read every second costs nothing.
 $title = '${psQuote(title || '')}'
 $HWND_TOPMOST = [IntPtr]::new(-1)
 $HWND_NOTOPMOST = [IntPtr]::new(-2)
@@ -225,17 +226,22 @@ while ((Get-Date) -lt $deadline) {
   Start-Sleep -Milliseconds 200
 }
 if ($title) {
-  $until = (Get-Date).AddSeconds(60)
   $sb = New-Object System.Text.StringBuilder 512
-  while ((Get-Date) -lt $until) {
+  $started = $null
+  $i = 0
+  while ($true) {
     $p = Get-Process -Id ${pid} -ErrorAction SilentlyContinue
-    if (-not $p) { break }
+    # Stop when this game closes. The start-time check means a later process
+    # that happens to reuse the same id is never renamed.
+    if (-not $p -or $p.ProcessName -ne 'retroarch') { break }
+    if ($null -eq $started) { $started = $p.StartTime } elseif ($p.StartTime -ne $started) { break }
     if ($p.MainWindowHandle -ne 0) {
       [void]$sb.Clear()
       [ArcadeFocus]::GetWindowText($p.MainWindowHandle, $sb, 512) | Out-Null
       if ($sb.ToString() -ne $title) { [ArcadeFocus]::SetWindowText($p.MainWindowHandle, $title) | Out-Null }
     }
-    Start-Sleep -Milliseconds 500
+    # Twice a second for the first minute (startup), then once a second.
+    if ($i -lt 120) { $i++; Start-Sleep -Milliseconds 500 } else { Start-Sleep -Milliseconds 1000 }
   }
 }
 `;
