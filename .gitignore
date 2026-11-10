@@ -37,9 +37,12 @@ music/*
 # RetroArch re-downloads them from buildbot.libretro.com/assets/system/Dolphin.zip.
 /bios/dolphin-emu/
 
-# Streets of Rage ROM-hack workspace (private mod tooling, patches, backups,
-# music, notes). Nothing in here is repo content - see sor-mod/SOR-MOD-RULES.pdf.
+# ROM-hack workspaces (private mod tooling, patches, backups, music, notes):
+# sor-mod, sor2-mod, sor3-mod, ga1-3-mod, gta3-mod, vicecity-mod, sa-mod,
+# mgs2-mod, mgs3-mod and any future <name>-mod folder. Nothing in here is
+# repo content - see each folder's README.
 /sor-mod/
+/*-mod/
 
 # Personal frontend settings merged over frontend/config.json (may name ROM files).
 frontend/config.local.json
