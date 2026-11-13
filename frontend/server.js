@@ -387,6 +387,11 @@ app.post('/api/launch', (req, res) => {
       const child = spawn(CONFIG.retroarchPath, args, {
         detached: true,
         stdio: 'ignore',
+        // The PS5 (DualSense) pad goes through SDL2, which drops controller input whenever the
+        // RetroArch window loses focus and may not pick it back up after an alt-tab or a click
+        // elsewhere. This SDL hint keeps the pad live regardless of focus (an Xbox/XInput pad
+        // never had this problem).
+        env: { ...process.env, SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS: '1' },
       });
       child.unref();
       const title = displayName(loadTitles(), system, file).title;
