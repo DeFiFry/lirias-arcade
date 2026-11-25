@@ -46,7 +46,7 @@ goto wait_loop
 echo Server confirmed running at %URL%
 call :find_chrome
 if defined CHROME (
-  rem Full screen in its own app window, or the open one brought to the front (open-app-window.ps1).
+  rem Kiosk (full screen, no F11 notice) in its own app window, or the open one brought to the front (open-app-window.ps1).
   powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0open-app-window.ps1" -Chrome "%CHROME%" -Url %URL% -ProfileDir "%PROFILE%" -Autoplay
 ) else (
   echo Chrome not found: opening the default browser. The music starts after your first click there.

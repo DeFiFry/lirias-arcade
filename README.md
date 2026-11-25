@@ -34,6 +34,15 @@ npm install   # already done
 npm start     # http://localhost:8080
 ```
 
+Or double-click `Launch-Arcade.bat` (or the `Liria's Arcade` shortcut). It starts the
+server and opens the arcade in its own Chrome window in kiosk mode: it fills the
+screen with no browser bars and no "Press F11 to exit full screen" notice.
+
+To leave the arcade, use its own Exit button (it also stops the server), or
+Alt+F4 to close the window. The Windows key or Alt+Tab switch to other windows
+while it keeps running. Launching it again while it is open brings the same
+window back to the front.
+
 ## RetroArch setup (required for ROM games)
 
 Edit `frontend/config.json`:

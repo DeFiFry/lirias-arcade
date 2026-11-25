@@ -1,4 +1,6 @@
-# Opens the app in its own full-screen Chrome app window (called by the launcher .bat).
+# Opens the app in its own Chrome app window in kiosk mode (called by the launcher .bat).
+# - Kiosk fills the screen with no "Press F11/Esc to exit full screen" notice. Leave with the arcade's
+#   own Exit button, or Alt+F4 / the Windows key / Alt+Tab.
 # - Its own Chrome profile (-ProfileDir), so Paul's normal Chrome is never used, the flags always
 #   apply, and Windows gives the window its own taskbar button with the app's icon (the page favicon).
 # - If that window is already open, it is brought to the front instead of opening a second one.
@@ -36,7 +38,7 @@ foreach ($p in $main) {
   }
 }
 
-$chromeArgs = @("--app=$Url", "--user-data-dir=`"$ProfileDir`"", '--start-fullscreen', '--no-first-run', '--no-default-browser-check')
+$chromeArgs = @("--app=$Url", "--user-data-dir=`"$ProfileDir`"", '--kiosk', '--no-first-run', '--no-default-browser-check')
 if ($Autoplay) { $chromeArgs += '--autoplay-policy=no-user-gesture-required' }
 Start-Process -FilePath $Chrome -ArgumentList $chromeArgs
-Write-Output 'Opened the app window (full screen; F11 leaves full screen).'
+Write-Output 'Opened the app window (kiosk: Exit button or Alt+F4 closes it).'
