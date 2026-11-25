@@ -568,4 +568,13 @@ requestAnimationFrame(pollGamepads);
   document.addEventListener(evt, playMusic, { once: true });
 });
 
+// The music button shows "playing" only while the track really plays (the
+// arcade's own Chrome window from Launch-Arcade.bat allows autoplay, so that
+// is usually straight away; elsewhere it starts after the first gesture).
+bgm.addEventListener('playing', () => musicBtn.classList.add('is-playing'));
+['pause', 'ended', 'emptied', 'error'].forEach((evt) => {
+  bgm.addEventListener(evt, () => musicBtn.classList.remove('is-playing'));
+});
+
+// setScreen('select') calls playMusic(), so the music is tried right away.
 setScreen('select');

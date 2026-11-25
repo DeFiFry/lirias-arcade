@@ -408,3 +408,28 @@ html, body {
 .music-slash-cut {
   stroke: var(--bg-primary);
 }
+
+/* While the music is actually playing, the note pulses softly in the
+   arcade's neon: cyan glow breathing up to yellow. Static when the viewer
+   prefers reduced motion; the muted look above is unchanged. */
+.music-btn.is-playing:not(.muted) svg {
+  animation: music-note-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes music-note-pulse {
+  0%, 100% {
+    color: var(--border-cyan);
+    filter: drop-shadow(0 0 1px var(--border-cyan));
+  }
+  50% {
+    color: var(--title-yellow);
+    filter: drop-shadow(0 0 4px var(--title-yellow));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .music-btn.is-playing:not(.muted) svg {
+    animation: none;
+    color: var(--border-cyan);
+  }
+}
