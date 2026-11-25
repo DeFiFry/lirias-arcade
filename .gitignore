@@ -57,4 +57,4 @@ frontend/assets/cabinet-cache/
 
 # The arcade's own Chrome profile, made by Launch-Arcade.bat (its app window
 # with autoplay allowed). Local browser data, never repo content.
-/.chrome-profile/
+/.chrome-app-arcade/

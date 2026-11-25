@@ -11,7 +11,7 @@ set "URL=http://localhost:8080"
 rem The arcade's own Chrome profile (gitignored). Paul's normal Chrome profile is
 rem never used, so the autoplay flag below always applies and the music starts
 rem without a click.
-set "PROFILE=%~dp0.chrome-profile"
+set "PROFILE=%~dp0.chrome-app-arcade"
 
 rem Already running? Just open the arcade window again (no second server).
 curl -s -o nul -m 1 %URL%/api/games
@@ -44,7 +44,8 @@ goto wait_loop
 echo Server confirmed running at %URL%
 call :find_chrome
 if defined CHROME (
-  start "" "%CHROME%" --app=%URL% --user-data-dir="%PROFILE%" --autoplay-policy=no-user-gesture-required --no-first-run --no-default-browser-check
+  rem Full screen in its own app window, or the open one brought to the front (open-app-window.ps1).
+  powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0open-app-window.ps1" -Chrome "%CHROME%" -Url %URL% -ProfileDir "%PROFILE%" -Autoplay
 ) else (
   echo Chrome not found: opening the default browser. The music starts after your first click there.
   start "" %URL%
