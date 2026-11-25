@@ -28,7 +28,9 @@ echo.
 
 :start_server
 echo Starting the arcade server in the background...
-powershell -NoProfile -WindowStyle Hidden -Command "Start-Process -FilePath 'node' -ArgumentList 'server.js' -WorkingDirectory '%cd%' -WindowStyle Hidden"
+rem The folder goes in through an environment variable, so a path with an apostrophe still works.
+set "APP_DIR=%cd%"
+powershell -NoProfile -WindowStyle Hidden -Command "Start-Process -FilePath 'node' -ArgumentList 'server.js' -WorkingDirectory $env:APP_DIR -WindowStyle Hidden"
 
 set /a tries=0
 

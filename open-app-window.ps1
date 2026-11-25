@@ -18,8 +18,11 @@ Add-Type -Namespace AppWin -Name Native -MemberDefinition @'
 '@
 
 # Chrome's main (browser) process for this profile: no --type= switch in its command line.
+# The profile path must end where the --user-data-dir value ends (quote, space or end of line), so a
+# Chrome on a look-alike folder (".chrome-app-cinema-old", say) is never taken for this one.
+$profileRx = '(?i)--user-data-dir="?' + [regex]::Escape($ProfileDir) + '\\?(?=["\s]|$)'
 $main = @(Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" | Where-Object {
-  $_.CommandLine -and $_.CommandLine.IndexOf($ProfileDir, [StringComparison]::OrdinalIgnoreCase) -ge 0 -and $_.CommandLine -notmatch '--type='
+  $_.CommandLine -and $_.CommandLine -match $profileRx -and $_.CommandLine -notmatch '--type='
 })
 foreach ($p in $main) {
   $proc = Get-Process -Id $p.ProcessId -ErrorAction SilentlyContinue

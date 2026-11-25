@@ -84,6 +84,13 @@ function playMusic() {
 }
 
 function toggleMusic() {
+  // On, but the browser has not let it start yet (autoplay blocked, no gesture
+  // so far): this click is the gesture, so it starts the music rather than
+  // muting music that was never heard.
+  if (!musicIsOff() && bgm.paused && !bgm.error) {
+    playMusic();
+    return;
+  }
   if (musicIsOff()) {
     musicMuted = false;
     musicLocked = false;
