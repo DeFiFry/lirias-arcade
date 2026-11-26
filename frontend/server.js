@@ -14,6 +14,11 @@ const CONFIG = loadConfig();
 const cabinet = require('./cabinet');
 try { cabinet.init(CONFIG.cabinet); } catch (err) { console.error('[cabinet] init failed:', err.message); }
 
+// state/now-playing.json + state/catalog.json for Amarin's activity report
+// (see now-playing.js). Never allowed to stop a game launching.
+const nowPlayingLib = require('./now-playing');
+const nowPlaying = nowPlayingLib.create({ stateDir: process.env.ARCADE_STATE_DIR || path.join(ROOT, 'state') });
+
 // A double press can fire two launch requests before the first RetroArch
 // window appears; two instances would fight over the same command port.
 let lastRomLaunch = 0;
@@ -326,8 +331,25 @@ function scanHtml5() {
   return games;
 }
 
+function allGames() {
+  return [...scanHtml5(), ...scanRoms()].sort(compareGames);
+}
+
+// The menu's categories in its own order (CATEGORY_ORDER in app.js), so
+// state/catalog.json lists exactly what the menu shows.
+function menuOrder() {
+  return nowPlayingLib.readMenuOrder(path.join(__dirname, 'app.js'))
+    || Object.keys(CONFIG.systems).map((key) => ({ key, label: CONFIG.systems[key].label || key }));
+}
+
+function updateCatalog(games) {
+  try { nowPlaying.writeCatalog(games || allGames(), menuOrder()); } catch (err) { console.error('[now-playing] catalog skipped:', err.message); }
+}
+
 app.get('/api/games', (req, res) => {
-  res.json({ games: [...scanHtml5(), ...scanRoms()].sort(compareGames) });
+  const games = allGames();
+  res.json({ games });
+  updateCatalog(games);
 });
 
 app.post('/api/launch', (req, res) => {
@@ -397,7 +419,13 @@ app.post('/api/launch', (req, res) => {
       const title = displayName(loadTitles(), system, file).title;
       const running = { pid: child.pid, title };
       runningRom = running;
-      const ended = () => { if (runningRom === running) runningRom = null; };
+      nowPlaying.start({ title, pid: child.pid });
+      const ended = () => {
+        if (runningRom === running) {
+          runningRom = null;
+          nowPlaying.stop();
+        }
+      };
       child.on('exit', ended);
       child.on('error', ended);
       bringToForeground(child.pid, title);
@@ -420,12 +448,24 @@ app.get('/api/status', (req, res) => {
 app.post('/api/shutdown', (req, res) => {
   res.json({ ok: true });
   console.log('Shutdown requested from UI — stopping server.');
+  nowPlaying.stop();
   setTimeout(() => process.exit(0), 200);
 });
 
 const server = app.listen(PORT, () => {
   console.log(`Lirias-Arcade frontend running at http://localhost:${PORT}`);
+  // Only once the port is ours: a second server that fails with EADDRINUSE
+  // must not delete the running server's file.
+  nowPlaying.clearLeftover();
+  updateCatalog();
 });
+
+// Best effort: a server killed outright leaves its file to go stale (the
+// report ignores it after 90 s). stop() only removes a file this process wrote.
+process.on('exit', () => nowPlaying.stop());
+for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP', 'SIGBREAK']) {
+  try { process.on(sig, () => { nowPlaying.stop(); process.exit(0); }); } catch (err) { /* signal not on this platform */ }
+}
 
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {

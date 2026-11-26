@@ -86,6 +86,26 @@ the first time you play.
 
 See `INSTALL_GUIDE.pdf` for full setup instructions.
 
+## Activity report files (state/)
+
+The server writes two small files in `state/` (gitignored) for Amarin's
+activity report in Hotel Liria (`hotel-liria/docs/PLAN-ACTIVITY-NOW-PLAYING.md`
+section 4.1). Code: `frontend/now-playing.js`, tests: `cd frontend && npm test`.
+
+- `state/now-playing.json`: the RetroArch game started from the arcade, while
+  it runs (`v 1, kind game, state playing, title, pid, since, at`). `title` is
+  exactly the card's title from `titles.json` (so the rules above, and ROMs are
+  never renamed). Rewritten every 30 s, deleted when the game exits, on the
+  Exit button and when the server stops; a leftover from a crash is deleted
+  when the server starts. HTML5 games and games loaded from RetroArch's own
+  menu are not covered.
+- `state/catalog.json`: every game the menu offers, grouped by the menu's
+  categories (`CATEGORY_ORDER` in `frontend/app.js`) in the menu's order:
+  `{ v, app: "arcade", at, groups: [{ name, items: [titles] }] }`. Written when
+  the server starts and again whenever `/api/games` finds a changed list.
+- Titles only: no file names, paths or URLs. A failed write is logged once and
+  never stops a game launching. No new HTTP route.
+
 ## Game names (frontend/titles.json)
 
 ROM files are never renamed: cue/gdi track lists, saves, save states and

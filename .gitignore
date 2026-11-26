@@ -58,3 +58,7 @@ frontend/assets/cabinet-cache/
 # The arcade's own Chrome profile, made by Launch-Arcade.bat (its app window
 # with autoplay allowed). Local browser data, never repo content.
 /.chrome-app-arcade/
+
+# Activity-report state (now-playing.json, catalog.json), rewritten by the
+# server; local only, never repo content. See README "Activity report files".
+/state/
