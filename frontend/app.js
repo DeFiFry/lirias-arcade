@@ -22,6 +22,7 @@ const CATEGORY_ORDER = [
   { key: 'dreamcast', label: 'Dreamcast' },
   { key: 'psx', label: 'PlayStation' },
   { key: 'ps2', label: 'PlayStation 2' },
+  { key: 'ps3', label: 'PlayStation 3' },
   { key: 'snes', label: 'Super Nintendo' },
   { key: 'nes', label: 'Nintendo' },
   { key: 'n64', label: 'Nintendo 64' },
@@ -343,7 +344,7 @@ async function launchGame(game) {
       if (data.launched === false && data.ignored === 'game running') {
         showToast(`"${data.title}" is still open. Close it first.`, 3000);
       } else {
-        showToast(`Launching "${game.title}" in RetroArch...`);
+        showToast(`Launching "${game.title}" in ${data.emulator || 'RetroArch'}...`);
       }
       watchRomGame();
     }

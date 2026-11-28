@@ -2,6 +2,7 @@
   "_comment": "EDIT THIS FILE to match your local RetroArch install before launching ROM games.",
   "retroarchPath": "E:/RetroArch/retroarch.exe",
   "coresDir": "E:/RetroArch/cores",
+  "rpcs3Path": "E:/RPCS3/rpcs3.exe",
   "cabinet": {
     "_comment": "Arcade-cabinet side art: assets/left-side.png + right-side.png cover the black bars beside any game that has them. Set enabled to false to turn it off. screenWidth/screenHeight 0 = detect your display. Per system, cabinetAspect is the picture shape its core shows (default 4:3); each game is also measured on its first launch and remembered.",
     "enabled": true,
@@ -21,6 +22,7 @@
     "wii": { "label": "Wii / GameCube", "core": "dolphin_libretro", "players": 4, "cabinetRecheck": true },
     "psx": { "label": "PlayStation", "core": "pcsx_rearmed_libretro", "players": 2, "discSidecarExts": [".cue", ".toc", ".ccd", ".sub"] },
     "ps2": { "label": "PlayStation 2", "core": "pcsx2_libretro", "players": 2, "cabinetRecheck": true },
+    "ps3": { "label": "PlayStation 3", "emulator": "rpcs3", "players": 2, "fileExts": [".iso"] },
     "PC": { "label": "PC", "core": "scummvm_libretro", "players": 2 }
   }
 }

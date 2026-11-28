@@ -13,6 +13,7 @@ roms/
   n64/        <- Nintendo 64 ROMs (.n64, .z64)
   psx/        <- PlayStation games (.bin/.cue, .chd)
   ps2/        <- PlayStation 2 games (.iso, .chd) - needs the LRPS2 (pcsx2_libretro) core
+  ps3/        <- PlayStation 3 games (.iso, or a game folder) - plays in RPCS3, see below
   PC/         <- ScummVM-supported PC games (see the scummvm_libretro core's docs)
 
 arcade-collection/
@@ -105,6 +106,66 @@ Edit `frontend/config.json`:
 A starter `retroarch.cfg` is at the project root: keyboard fallback on port 1,
 gamepad autodetect on ports 1-4 (up to 4 controllers, auto-assigned in
 connection order). Copy/merge it into your RetroArch config directory.
+
+## PlayStation 3 (RPCS3)
+
+PS3 games play in **RPCS3**, not RetroArch (RetroArch has no PS3 core). It is installed
+beside RetroArch at `E:/RPCS3` (official build from github.com/RPCS3/rpcs3-binaries-win,
+checksum checked), set in `frontend/config.json` as `rpcs3Path`. The **PlayStation 3**
+folder sits right after PlayStation 2 on the menu. Like every other system it only shows
+once it has at least one game. (An arcade that was already running when PS3 was added
+needs one restart, EXIT then the shortcut, before it knows PS3; after that new games
+show on a refresh.)
+
+**Adding a game.** Put it in `roms/ps3/`, then open the menu again. Either form works:
+
+```
+roms/ps3/
+  Demon's Souls (USA).iso                  <- a disc image (.iso)
+  Uncharted (BCUS98103)/                   <- or a decrypted game folder; the folder
+    PS3_GAME/USRDIR/EBOOT.BIN                 name is what the menu shows
+    PS3_GAME/PARAM.SFO ...
+  Some PSN Game/USRDIR/EBOOT.BIN           <- a PSN-style folder works too
+```
+
+Folders without an EBOOT.BIN (a half-finished copy) and other files are left off the menu.
+Names follow the same `frontend/titles.json` rules as every system, keyed
+`ps3/<file or folder name>`; game files and folders are never renamed.
+
+**The first run of each game is slow.** RPCS3 compiles the game's PPU/SPU code and shaders
+the first time (a progress bar, often several minutes, and some stutter early on). That is
+normal and happens once; it is cached in `E:/RPCS3/cache`.
+
+**Playing.** The server starts `rpcs3.exe --no-gui --fullscreen <iso or EBOOT.BIN>`: no RPCS3
+main window, just the game full screen. To leave, press the **PS / Guide button** for the
+home menu and choose **Exit Game** (Esc only leaves full screen). RPCS3 then closes and the
+arcade takes the controller back, as with RetroArch. The cabinet side art is not used for
+PS3.
+
+**Controller.** `E:/RPCS3/config/input_configs/global/Default.yml` sets players 1 and 2 to
+**XInput** (Xbox-style pads, including the one Sunshine/Moonlight gives the living room).
+For the PS5 DualSense at the desk there is a second profile, `DualSense.yml` (DualSense as
+player 1, an Xbox pad as player 2): put `"systems": { "ps3": { "inputConfig": "DualSense" } }`
+in `frontend/config.local.json` to use it (the server then adds `--input-config DualSense`).
+
+**Saves.** In-game saves live in `game-saves/ps3/savedata` with the other systems' saves
+(Dropbox, never GitHub): `E:/RPCS3/dev_hdd0/home/00000001/savedata` is a junction to it.
+Everything else stays in RPCS3's own portable folder `E:/RPCS3` (dev_flash firmware,
+dev_hdd0 game data and updates, cache). After a reinstall of RPCS3, recreate the junction
+in a Command Prompt:
+`mklink /J E:\RPCS3\dev_hdd0\home\00000001\savedata E:\Projects\Lirias-Arcade\game-saves\ps3\savedata`
+
+**Settings.** `rpcs3/config/` in this repo holds copies of the files written into
+`E:/RPCS3/config/`: `config.yml` (games start full screen, RPCS3 exits when the game does,
+the window title is the game's name) and the two pad profiles. Copy them back after a
+reinstall.
+
+**Firmware.** RPCS3 needs the PS3 system software. Version 4.93 is installed, from Sony's
+official site (the file is `E:/RPCS3-firmware/PS3UPDAT.PUP`). For a newer one, download
+PS3UPDAT.PUP from https://www.playstation.com/en-us/support/hardware/ps3/system-software/
+and, with no PS3 game open, run
+`E:\RPCS3\rpcs3.exe --headless --installfw "<path to PS3UPDAT.PUP>"`
+(no window opens; the installed version is in `E:/RPCS3/dev_flash/vsh/etc/version.txt`).
 
 ## BIOS files (PlayStation, PS2 and Dreamcast)
 

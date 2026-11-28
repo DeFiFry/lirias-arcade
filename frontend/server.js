@@ -6,12 +6,17 @@ const path = require('path');
 const { spawn } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
-const ROMS_DIR = path.join(ROOT, 'roms');
+// ARCADE_ROMS_DIR / ARCADE_RPCS3_PATH / ARCADE_TEST_NO_FOCUS are only for the
+// tests (a temp rom folder, a stand-in emulator, no focus script); the arcade
+// itself never sets them.
+const ROMS_DIR = process.env.ARCADE_ROMS_DIR || path.join(ROOT, 'roms');
 const COLLECTION_DIR = path.join(ROOT, 'arcade-collection');
 const MUSIC_DIR = path.join(ROOT, 'Music');
 const RETROARCH_CONFIG_PATH = path.join(ROOT, 'retroarch.cfg');
 const CONFIG = loadConfig();
 const cabinet = require('./cabinet');
+// PlayStation 3 games run in RPCS3, not RetroArch (lib/ps3.js).
+const ps3 = require('./lib/ps3');
 try { cabinet.init(CONFIG.cabinet); } catch (err) { console.error('[cabinet] init failed:', err.message); }
 
 // state/now-playing.json + state/catalog.json for Amarin's activity report
@@ -289,6 +294,23 @@ function scanRoms() {
   for (const system of Object.keys(CONFIG.systems)) {
     const dir = path.join(ROMS_DIR, system);
     if (!fs.existsSync(dir)) continue;
+    // RPCS3 systems (PS3): .iso files and decrypted game folders, see lib/ps3.js.
+    if (CONFIG.systems[system].emulator === 'rpcs3') {
+      for (const file of ps3.scanEntries(dir, CONFIG.systems[system].fileExts)) {
+        const shown = displayName(titles, system, file);
+        games.push({
+          id: `rom:${system}:${file}`,
+          title: shown.title,
+          info: shown.info,
+          sortKey: shown.sort,
+          type: 'rom',
+          system,
+          systemLabel: CONFIG.systems[system].label,
+          file,
+        });
+      }
+      continue;
+    }
     // Multi-track disc systems (e.g. psx) keep the .cue/.toc/.ccd/.sub sidecar
     // files that reference a .bin next to it in the same folder - RetroArch
     // reads the sidecar automatically from the .bin path, so only the .bin
@@ -397,6 +419,8 @@ app.post('/api/launch', (req, res) => {
     if (Date.now() - lastRomLaunch < 3000) return res.json({ type: 'rom', launched: false, ignored: 'already launching' });
     lastRomLaunch = Date.now();
 
+    if (systemConfig.emulator === 'rpcs3') return launchRpcs3(res, system, file, romPath, systemConfig);
+
     // Optional per-game core, matched by exact file name (e.g. the widescreen
     // Genesis core for one modded ROM); every other game uses the system core.
     const coreName = (systemConfig.coreOverrides && systemConfig.coreOverrides[file]) || systemConfig.core;
@@ -460,6 +484,49 @@ app.post('/api/launch', (req, res) => {
 
   return res.status(400).json({ error: `Unknown game id: ${id}` });
 });
+
+// A PS3 game in RPCS3 (lib/ps3.js). Tracked exactly like a RetroArch game
+// (runningRom, now-playing, the page leaving the controller alone), so it
+// returns to the arcade the same way: when RPCS3 closes (the PS button's home
+// menu > Exit Game, or the game quitting), the menu takes the pad back. No
+// cabinet side art (that drives RetroArch's overlay) and no window renaming
+// (RPCS3's own title is set to the game's name in its config.yml).
+function launchRpcs3(res, system, file, romPath, systemConfig) {
+  const target = ps3.bootTarget(romPath, systemConfig.fileExts);
+  if (!target) {
+    lastRomLaunch = 0;
+    return res.status(404).json({ error: `Not a PS3 game (no .iso or PS3_GAME/USRDIR/EBOOT.BIN): ${file}` });
+  }
+  const exe = process.env.ARCADE_RPCS3_PATH || CONFIG.rpcs3Path;
+  if (!exe || !fs.existsSync(exe)) {
+    lastRomLaunch = 0;
+    return res.status(500).json({ error: `RPCS3 not found at ${exe}. Edit frontend/config.json rpcs3Path.` });
+  }
+  try {
+    const child = spawn(exe, ps3.buildArgs({ target, inputConfig: systemConfig.inputConfig }), {
+      cwd: path.dirname(exe),
+      detached: true,
+      stdio: 'ignore',
+    });
+    child.unref();
+    const title = displayName(loadTitles(), system, file).title;
+    const running = { pid: child.pid, title };
+    runningRom = running;
+    nowPlaying.start({ title, pid: child.pid });
+    const ended = () => {
+      if (runningRom === running) {
+        runningRom = null;
+        nowPlaying.stop();
+      }
+    };
+    child.on('exit', ended);
+    child.on('error', ended);
+    if (!process.env.ARCADE_TEST_NO_FOCUS) bringToForeground(child.pid, '');
+    return res.json({ type: 'rom', launched: true, emulator: 'RPCS3' });
+  } catch (err) {
+    return res.status(500).json({ error: `Failed to launch RPCS3: ${err.message}` });
+  }
+}
 
 // The arcade page asks this while a RetroArch game is open, and takes the
 // controller back once it says nothing is running.

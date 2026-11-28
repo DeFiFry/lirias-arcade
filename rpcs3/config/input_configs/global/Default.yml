@@ -1,0 +1,6 @@
+Player 1 Input:
+  Handler: XInput
+  Device: XInput Pad #1
+Player 2 Input:
+  Handler: XInput
+  Device: XInput Pad #2

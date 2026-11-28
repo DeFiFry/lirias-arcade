@@ -1,0 +1,8 @@
+Miscellaneous:
+  Automatically start games after boot: true
+  Exit RPCS3 when process finishes: true
+  Pause emulation on RPCS3 focus loss: false
+  Start games in fullscreen mode: true
+  Prevent display sleep while running games: true
+  Show shader compilation hint: true
+  Window Title Format: "%T"
