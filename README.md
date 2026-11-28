@@ -43,6 +43,58 @@ Alt+F4 to close the window. The Windows key or Alt+Tab switch to other windows
 while it keeps running. Launching it again while it is open brings the same
 window back to the front.
 
+## Living room (home network)
+
+Play the arcade on the living-room Mac: the games still run here in RetroArch/PCSX2,
+**Sunshine** on this PC streams the picture and sound to **Moonlight** on the Mac, and the
+controller (paired with the Mac by Bluetooth) comes back through Moonlight as an Xbox 360
+pad (Sunshine's ViGEmBus driver). Paul's step-by-step guide is
+[docs/living-room-arcade.md](docs/living-room-arcade.md); the streaming files are in
+`streaming/` (`Install Game Streaming.bat`, `Add Arcade To Sunshine.bat`).
+
+The arcade on this PC does not change: same window, same port (8080), never a PIN.
+
+**Living Room page** (optional, off by default): http://lirias-arcade.local:6969 shows the
+arcade's status, whether Sunshine looks installed or running, and the Moonlight steps.
+
+1. Run **`Set Arcade PIN.bat`** here: 1 sets or changes the PIN (4 to 8 digits, typed as
+   stars; only a scrambled copy goes into `state/lan.json`), 2 turns it off, 3 cancels.
+   Changing the PIN or turning it off forgets every remembered device at once.
+2. It then runs **`Allow Arcade On Home Network.bat`**: Windows asks once (press Yes) to let
+   Node.js receive TCP 6969 and UDP 5353 on **Private** (home) networks only. The rules are
+   named "Liria's Arcade (home network, ...)", separate from Liria Cinema's and Playlist
+   Liria's. Port 8080 is never opened.
+3. Restart the arcade (EXIT, then the shortcut), open the address on the Mac, type the PIN
+   once; that browser is remembered for a year.
+
+How it is kept safe (`frontend/lib/living-room.js`, `lan.js`, `lan-page.js`, `mdns.js`,
+`sunshine.js`; the same approach as Playlist Liria's and Liria Cinema's home network mode):
+
+- With a PIN set, a **second, separate listener** opens on 0.0.0.0:6969. It is not the arcade
+  app: it has its own small router and none of the arcade's routes. Every arcade path
+  (`/api/games`, `/api/launch`, `/api/shutdown`, `/api/status`, `/games/`, `/music/`) answers
+  **403** there, with or without the PIN. **Read only:** no launching, settings or saves from
+  another device. Without a PIN nothing listens on 6969 at all.
+- It answers only this PC and private home-network addresses (the connection itself, never
+  forwarding headers), only the names `lirias-arcade.local`, this PC's name and its LAN
+  addresses on port 6969 (blocks DNS rebinding), and the PIN form only from its own page
+  (Origin must equal Host, Sec-Fetch-Site checked).
+- Other devices see a PIN page first (no script at all). The right PIN gives an HttpOnly,
+  SameSite=Strict cookie (`lirias_arcade_lan`) for a year; only SHA-256 hashes of the tokens
+  are stored (`state/lan-sessions.json`). The PIN is checked with scrypt and
+  `timingSafeEqual`. Wrong PINs: 5 tries, then a wait of 1 minute that doubles each time (up
+  to an hour), plus a growing limit across all devices, and only a few checks at once.
+- Before the PIN only the arcade's tab icons load (an exact list, including `/favicon.ico`
+  and the Apple touch icons browsers ask for by themselves).
+- `lirias-arcade.local` is announced over mDNS only while the mode is on, only with this
+  PC's home-network address, sharing UDP 5353 (reuseAddr) with Liria Cinema's and Playlist
+  Liria's responders.
+- Sunshine is detected read-only: `sunshine.exe` in Program Files, a running `sunshine.exe`
+  process, or something answering on 127.0.0.1:47990 (checked at most every 10 s).
+- Tests: `cd frontend && npm test` (`test/lan.test.js`, and `test/pc-unchanged.test.js`, which
+  starts a test copy of `server.js` on spare ports with a temp state folder and checks the PC
+  routes, the no-PIN case and the PIN case).
+
 ## RetroArch setup (required for ROM games)
 
 Edit `frontend/config.json`:

@@ -17,7 +17,8 @@ try { cabinet.init(CONFIG.cabinet); } catch (err) { console.error('[cabinet] ini
 // state/now-playing.json + state/catalog.json for Amarin's activity report
 // (see now-playing.js). Never allowed to stop a game launching.
 const nowPlayingLib = require('./now-playing');
-const nowPlaying = nowPlayingLib.create({ stateDir: process.env.ARCADE_STATE_DIR || path.join(ROOT, 'state') });
+const STATE_DIR = process.env.ARCADE_STATE_DIR || path.join(ROOT, 'state');
+const nowPlaying = nowPlayingLib.create({ stateDir: STATE_DIR });
 
 // A double press can fire two launch requests before the first RetroArch
 // window appears; two instances would fight over the same command port.
@@ -28,6 +29,27 @@ let lastRomLaunch = 0;
 // still reads the pad in the background, so without this every button press in
 // the game could open the same game again.
 let runningRom = null; // { pid, title }
+
+// Home network mode (lib/living-room.js), off until an Arcade PIN is set with
+// "Set Arcade PIN.bat": a SEPARATE, read-only listener on 0.0.0.0:6969 for the
+// Living Room page on the Mac (status + Moonlight steps). It has none of this
+// app's routes, so nothing here (launch, shutdown, games, music) is reachable
+// from another device through it. This app's own listener below is unchanged.
+// Any failure here only switches the Living Room page off; the arcade runs on.
+let livingRoom = null;
+try {
+  livingRoom = require('./lib/living-room').createLivingRoom({
+    stateDir: STATE_DIR,
+    port: Number(process.env.ARCADE_LAN_PORT || 6969),
+    getGame: () => ({ romRunning: !!runningRom, title: runningRom ? runningRom.title : null }),
+  });
+} catch (err) {
+  console.error('[living-room] off:', err.message);
+  livingRoom = null;
+}
+function closeLivingRoom() {
+  try { if (livingRoom) livingRoom.close(); } catch (err) { /* best effort */ }
+}
 
 // For a PowerShell single-quoted string: double the quotes, drop anything odd.
 function psQuote(text) {
@@ -449,6 +471,7 @@ app.post('/api/shutdown', (req, res) => {
   res.json({ ok: true });
   console.log('Shutdown requested from UI — stopping server.');
   nowPlaying.stop();
+  closeLivingRoom();
   setTimeout(() => process.exit(0), 200);
 });
 
@@ -458,13 +481,19 @@ const server = app.listen(PORT, () => {
   // must not delete the running server's file.
   nowPlaying.clearLeftover();
   updateCatalog();
+  // Then, only if an Arcade PIN is set, the Living Room page for the home network.
+  if (livingRoom) {
+    livingRoom.start().then((lanPort) => {
+      if (lanPort) console.log(`Living Room page on the home network (Arcade PIN needed): http://lirias-arcade.local:${lanPort}`);
+    }).catch((err) => console.error('[living-room] off:', err.message));
+  }
 });
 
 // Best effort: a server killed outright leaves its file to go stale (the
 // report ignores it after 90 s). stop() only removes a file this process wrote.
 process.on('exit', () => nowPlaying.stop());
 for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP', 'SIGBREAK']) {
-  try { process.on(sig, () => { nowPlaying.stop(); process.exit(0); }); } catch (err) { /* signal not on this platform */ }
+  try { process.on(sig, () => { nowPlaying.stop(); closeLivingRoom(); process.exit(0); }); } catch (err) { /* signal not on this platform */ }
 }
 
 server.on('error', (err) => {
